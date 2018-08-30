@@ -19,17 +19,18 @@ function check_userid() {
 function getAccount () {
   $userid = use_input($_POST['userid']);
 	$token = use_input($_POST['token']);
-  if (file_exists('data/users/'. $userid)) {
-    // account found in database
-		$userdata = json_decode(file_get_contents('data/users/'. $userid));
-		if ($token == $userdata->token) {
-      // key was correct
-      // updating key
-      $token = hash('sha256', time());
-      $userdata->token = $token;
-      file_put_contents('data/users/'. $userid, json_encode($userdata));
-		}
-	} else {
+  if (!empty($userid) && !empty($token)) {
+    if (file_exists('data/users/'. $userid)) {
+      // account found in database
+  		$userdata = json_decode(file_get_contents('data/users/'. $userid));
+  		if ($token == $userdata->token) {
+        // key was correct
+        $token = hash('sha256', time());
+        $userdata->token = $token;
+        file_put_contents('data/users/'. $userid, json_encode($userdata));
+  		}
+    }
+  } else {
     // Create a new wallet
     $userid = hash('sha256', time());
     $token = hash('sha256', $userid);
