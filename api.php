@@ -41,12 +41,13 @@ function getAccount () {
     $userid = hash('sha256', time());
     $token = hash('sha256', $userid);
     if (!file_exists('data/users/'. $userid)) {
-      $address = $intercrone->getnewaddress();
+      $address = $intercrone->getnewaddress($userid);
       $userdata = json_encode(array("balance"=>"0", "address"=>$address, "token"=>$userid));
       file_put_contents('data/users/'. $userid, $userdata);
     }
 
-  echo (json_encode(array("userid"=>$userid, "token"=>$token)));
+  //echo (json_encode(array("userid"=>$userid, "token"=>$token)));
+  echo (json_encode(array("userid"=>$userid, "token"=>$token, "balance"=>$balance, "address"=>$address)));
 }
 
 function check_login () {
