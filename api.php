@@ -28,7 +28,6 @@ function getAccount () {
       $token = hash('sha256', time());
       $userdata->token = $token;
       file_put_contents('data/users/'. $userid, json_encode($userdata));
-      echo (json_encode(array("userid"=>$userid, "token"=>$token)));
 		}
 	} else {
     // Create a new wallet
