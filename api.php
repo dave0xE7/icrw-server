@@ -40,7 +40,7 @@ function getAccount () {
     $userid = hash('sha256', time());
     $token = hash('sha256', $userid);
     if (!file_exists('data/users/'. $userid)) {
-      $address = $intercrone->getnewaddress($userid);
+      $address = $intercrone->getnewaddress();
       $userdata = json_encode(array("balance"=>"0", "address"=>$address, "token"=>$userid));
       file_put_contents('data/users/'. $userid, $userdata);
     }
