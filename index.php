@@ -9,4 +9,7 @@ $info = $intercrone->getinfo();
 
 print_r ($info);
 
+print_r($intercrone->listtransactions());
+print_r($intercrone->getaccounts());
+
 ?>
