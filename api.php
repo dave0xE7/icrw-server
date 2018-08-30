@@ -8,9 +8,6 @@ function use_input($data) {
   return $data;
 }
 
-$userid = use_input($_POST['userid']);
-$token = use_input($_POST['token']);
-
 function check_userid() {
 	global $userid;
 	if (isset ($_SESSION['userid'])) {
