@@ -109,7 +109,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 	} else if ($q == "checklogin") {
 		echo (check_login());
-  } else if (q$ == "getaccount") {
+  } else if ($q == "getaccount") {
     getAccount();
 	} else if ($q == "getnewaddress") {
 		if (!empty(check_userid())) {
