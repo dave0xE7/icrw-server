@@ -1,5 +1,7 @@
 <?php
-session_start();
+require_once("EasyBitcoin-PHP/easybitcoin.php");
+
+$intercrone = new Bitcoin("InterCronerpc", "1337133713371337", "localhost", "8443");
 
 function use_input($data) {
   $data = trim($data);
@@ -28,7 +30,8 @@ function getAccount () {
         $token = hash('sha256', time());
         $userdata->token = $token;
         file_put_contents('data/users/'. $userid, json_encode($userdata));
-        echo (json_encode(array("userid"=>$userid, "token"=>$token)));
+        $balance = $intercrone->getbalance($userid);
+        echo (json_encode(array("userid"=>$userid, "token"=>$token, "balance"=>$balance, "address"=>$userdata->address)));
         return;
   		}
     }
@@ -37,7 +40,8 @@ function getAccount () {
     $userid = hash('sha256', time());
     $token = hash('sha256', $userid);
     if (!file_exists('data/users/'. $userid)) {
-      $userdata = json_encode(array("balance"=>"0", "address"=>"", "token"=>$userid));
+      $address = $intercrone->getnewaddress($userid);
+      $userdata = json_encode(array("balance"=>"0", "address"=>$address, "token"=>$userid));
       file_put_contents('data/users/'. $userid, $userdata);
     }
 
