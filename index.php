@@ -11,6 +11,9 @@ print_r ($info);
 
 print_r($intercrone->listtransactions());
 print_r($intercrone->listaccounts());
+<<<<<<< HEAD
 print_r($intercrone->getbestblock());
+=======
+>>>>>>> f58a20ab7b1f563c9809c3920c67d3029ec52658
 
 ?>
