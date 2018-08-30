@@ -1,0 +1,14 @@
+
+
+if no account or session was found on the device
+  send android device info
+  #check if device is known
+  create a new account based on client hash (device info)
+  respond account + token
+else (account found)
+  send walletId, walletKey
+  if walletKey matches database
+    server creates new walletKey
+    respond with walletId, walletKey
+    return
+  false
