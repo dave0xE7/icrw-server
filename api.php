@@ -19,6 +19,7 @@ function check_userid() {
 }
 
 function getAccount () {
+  global $intercrone;
   $userid = use_input($_POST['userid']);
 	$token = use_input($_POST['token']);
   if (!empty($userid) && !empty($token)) {
