@@ -30,12 +30,14 @@ function getAccount () {
       file_put_contents('data/users/'. $userid, json_encode($userdata));
       echo (json_encode(array("userid"=>$userid, "token"=>$token)));
 		}
-	}
-  $userid = hash('sha256', time());
-  $token = hash('sha256', $userid);
-  if (!file_exists('data/users/'. $userid)) {
-    $userdata = json_encode(array("balance"=>"0", "address"=>"", "token"=>$userid));
-    file_put_contents('data/users/'. $userid, $userdata);
+	} else {
+    // Create a new wallet
+    $userid = hash('sha256', time());
+    $token = hash('sha256', $userid);
+    if (!file_exists('data/users/'. $userid)) {
+      $userdata = json_encode(array("balance"=>"0", "address"=>"", "token"=>$userid));
+      file_put_contents('data/users/'. $userid, $userdata);
+    }
   }
   echo (json_encode(array("userid"=>$userid, "token"=>$token)));
 }
