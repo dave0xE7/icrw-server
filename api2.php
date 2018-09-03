@@ -54,6 +54,7 @@ function secureAccount ($account, $key) {
     }
 }
 function getBalance ($account, $key) {
+	global $intercrone;
         if (file_exists(dataDir. $account)) {
                 // account found in database
                 $userdata = json_decode(file_get_contents(dataDir. $account));
