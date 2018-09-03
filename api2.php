@@ -125,7 +125,9 @@ if ($method == "createAccount") {
 		array("name"=>"checkAccount", "params"=>array("<account>")),
 		array("name"=>"testAccount", "params"=>array("<account>", "<key>")),
 		array("name"=>"secureAccount", "params"=>array("<account>", "<key>")),
-		array("name"=>"getBalance", "params"=>array("<account>", "<key>"))
+		array("name"=>"getBalance", "params"=>array("<account>", "<key>")),
+		array("name"=>"listTransactions", "params"=>array("<account>", "<key>")),
+		array("name"=>"makeTransaction", "params"=>array("<account>", "<key>", "<receiver>", "<amount>"))
 	);
 	echo (json_encode(array("id"=>$input->id, "jsonrpc"=>"2.0", "procs"=>$procs)));
 }
