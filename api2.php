@@ -29,7 +29,7 @@ function testAccount ($account, $key) {
 }
 
 function createAccount () {
-  globel $intercrone;
+  global $intercrone;
   // Create a new wallet
   $account = hash('sha256', time());
   $newkey = hash('sha256', $account);
@@ -78,7 +78,7 @@ function getBalance ($account, $key) {
 
 function listTransactions ($account, $key) {
         if (checkAccess($account, $key)) {
-                globel $intercrone
+                global $intercrone
                 //$userdata = json_decode(file_get_contents(dataDir. $account));
                 Respond($intercrone->listtransactions($account));
         }
