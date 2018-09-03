@@ -3,53 +3,49 @@ require_once("EasyBitcoin-PHP/easybitcoin.php");
 
 $intercrone = new Bitcoin("InterCronerpc", "1337133713371337", "localhost", "8443");
 
-$dataDir = "";
+$dataDir = "data/users/";
 
 
 function checkAccount ($account) {
-  if (file_exists('data/users/'. $account)) {
-    Respond("true");
-  } else {
-	  Respond("false");
-	}
+        return file_exists($dataDir. $account);
 }
+function checkKey ($account, $key) {
+	$userdata = json_decode(file_get_contents($dataDir. $account));
+	return ($key == $userdata->key);
+}
+
 function createAccount () {
   global $intercrone;
   // Create a new wallet
   $account = hash('sha256', time());
   $newkey = hash('sha256', $account);
-  if (!file_exists('data/users/'. $account)) {
+  if (!file_exists($dataDir. $account)) {
     $address = $intercrone->getnewaddress($account);
     $balance = 0.0;
     $userdata = json_encode(array("balance"=>$balance, "address"=>$address, "key"=>$newkey));
-    file_put_contents('data/users/'. $account, $userdata);
+    file_put_contents($dataDir. $account, $userdata);
     Respond(array("account"=>$account, "key"=>$newkey));
   } else {
   Error("-15","account exists");
 	}
 }
 function testAccount ($account, $key) {
-        if (file_exists('data/users/'. $account)) {
-                // account found in database
-                $userdata = json_decode(file_get_contents('data/users/'. $account));
-                if ($key == $userdata->key) {
-                        Respond("true"); // correct
-                } else {
-                        Respond("false"); // incorrect
-                }
-        } else {
-                Error ("-15", "not found");
+        $found = checkAccount($account);
+        $correct = false;
+        if ($found) {
+                $correct = checkKey();
         }
+        Respond(array("account"=>$found, "key"=>$correct));
 }
 function secureAccount ($account, $key) {
-    if (file_exists('data/users/'. $account)) {
+    if (file_exists($dataDir. $account)) {
       // account found in database
-  	$userdata = json_decode(file_get_contents('data/users/'. $account));
+  	$userdata = json_decode(file_get_contents($dataDir. $account));
   	if ($key == $userdata->key) {
         // key was correct
         $newkey = hash('sha256', time());
         $userdata->key = $newkey;
-        file_put_contents('data/users/'. $account, json_encode($userdata));
+        file_put_contents($dataDir. $account, json_encode($userdata));
         Respond($newkey);
       } else {
 	Error ("-10", "key incorrect");}
@@ -58,13 +54,12 @@ function secureAccount ($account, $key) {
     }
 }
 function getBalance ($account, $key) {
-	global $intercrone;
-        if (file_exists('data/users/'. $account)) {
+        if (file_exists($dataDir. $account)) {
                 // account found in database
-                $userdata = json_decode(file_get_contents('data/users/'. $account));
+                $userdata = json_decode(file_get_contents($dataDir. $account));
                 if ($key == $userdata->key) {
                         $balance = $intercrone->getbalance($userdata->address);
-                        Respond (array("balance"=>$balance, "address"=>$userdata->address));
+                        Respond (json_encode(array("balance"=>$balance, "address"=>$userdata->address)));
                 } else {
                         Error ("-10", "key incorrect");
                 }
@@ -72,44 +67,20 @@ function getBalance ($account, $key) {
                 Error ("-15", "not found");
         }
 }
-/**
 
-	}
-    }
-  }
-  //echo (json_encode(array("userid"=>$userid, "token"=>$token)));
-  return  (json_encode(array("userid"=>$userid, "token"=>$token, "balance"=>$balance, "address"=>$address)));
-}
-**/
 
-function check_login () {
-	$userid = use_input($_POST['userid']);
-	$token = use_input($_POST['token']);
-	return check_user_token($userid, $token);
-}
-
-function check_user_token ($userid, $token) {
-	if (file_exists('data/users/'. $userid)) {
-		$userdata = json_decode(file_get_contents('data/users/'. $userid));
-		if ($token == $userdata->token) {
-			return true;
-		}
-	}
-	return false;
-}
-
-//function Respond ($id, $response) {
 function Respond ($response) {
   global $id;
   echo (json_encode(array("id"=>$id, "jsonrpc"=>"2.0", "result"=>$response)));
 }
-//function Error ($id, $code, $message) {
 function Error ($code, $message) {
   global $id;
   echo (json_encode(array("id"=>$id, "jsonrpc"=>"2.0", "error"=>array("code"=>$code, "message"=>$message))));
 }
-
-//if ($_SERVER["REQUEST_METHOD"] == "POST") {
+function RespondBool ($value) {
+        if ($value) { Respond("true"); }
+        else { Respond("false"); }
+}
 
 $inputJson = file_get_contents('php://input');
 $input = json_decode($inputJson);
