@@ -3,14 +3,14 @@ require_once("EasyBitcoin-PHP/easybitcoin.php");
 
 $intercrone = new Bitcoin("InterCronerpc", "1337133713371337", "localhost", "8443");
 
-$dataDir = "data/users/";
+define (dataDir, "data/users/");
 
 
 function checkAccount ($account) {
-        return file_exists($dataDir. $account);
+        return file_exists(dataDir. $account);
 }
 function checkKey ($account, $key) {
-	$userdata = json_decode(file_get_contents($dataDir. $account));
+	$userdata = json_decode(file_get_contents(dataDir. $account));
 	return ($key == $userdata->key);
 }
 
@@ -19,11 +19,11 @@ function createAccount () {
   // Create a new wallet
   $account = hash('sha256', time());
   $newkey = hash('sha256', $account);
-  if (!file_exists($dataDir. $account)) {
+  if (!file_exists(dataDir. $account)) {
     $address = $intercrone->getnewaddress($account);
     $balance = 0.0;
     $userdata = json_encode(array("balance"=>$balance, "address"=>$address, "key"=>$newkey));
-    file_put_contents($dataDir. $account, $userdata);
+    file_put_contents(dataDir. $account, $userdata);
     Respond(array("account"=>$account, "key"=>$newkey));
   } else {
   Error("-15","account exists");
@@ -38,14 +38,14 @@ function testAccount ($account, $key) {
         Respond(array("account"=>$found, "key"=>$correct));
 }
 function secureAccount ($account, $key) {
-    if (file_exists($dataDir. $account)) {
+    if (file_exists(dataDir. $account)) {
       // account found in database
-  	$userdata = json_decode(file_get_contents($dataDir. $account));
+  	$userdata = json_decode(file_get_contents(dataDir. $account));
   	if ($key == $userdata->key) {
         // key was correct
         $newkey = hash('sha256', time());
         $userdata->key = $newkey;
-        file_put_contents($dataDir. $account, json_encode($userdata));
+        file_put_contents(dataDir. $account, json_encode($userdata));
         Respond($newkey);
       } else {
 	Error ("-10", "key incorrect");}
@@ -54,9 +54,9 @@ function secureAccount ($account, $key) {
     }
 }
 function getBalance ($account, $key) {
-        if (file_exists($dataDir. $account)) {
+        if (file_exists(dataDir. $account)) {
                 // account found in database
-                $userdata = json_decode(file_get_contents($dataDir. $account));
+                $userdata = json_decode(file_get_contents(dataDir. $account));
                 if ($key == $userdata->key) {
                         $balance = $intercrone->getbalance($userdata->address);
                         Respond (json_encode(array("balance"=>$balance, "address"=>$userdata->address)));
