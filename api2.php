@@ -92,7 +92,7 @@ $params = $input->params;
 if ($method == "createAccount") {
         createAccount();
 } else if ($method=="checkAccount") {
-        checkAccount($params[0]);
+        RespondBool(checkAccount($params[0]));
 } else if ($method=="testAccount") {
         testAccount($params[0], $params[1]);
 } else if ($method=="secureAccount") {
