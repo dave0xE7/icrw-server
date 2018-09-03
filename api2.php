@@ -25,6 +25,7 @@ function checkAccount ($account) {
   return false;
 }
 function createAccount () {
+  global $intercrone;
   // Create a new wallet
   $account = hash('sha256', time());
   $newkey = hash('sha256', $account);
