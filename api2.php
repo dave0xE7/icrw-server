@@ -58,12 +58,13 @@ function secureAccount ($account, $key) {
     }
 }
 function getBalance ($account, $key) {
+	global $intercrone;
         if (file_exists('data/users/'. $account)) {
                 // account found in database
                 $userdata = json_decode(file_get_contents('data/users/'. $account));
                 if ($key == $userdata->key) {
                         $balance = $intercrone->getbalance($userdata->address);
-                        Respond (json_encode(array("balance"=>$balance, "address"=>$userdata->address)));
+                        Respond (array("balance"=>$balance, "address"=>$userdata->address));
                 } else {
                         Error ("-10", "key incorrect");
                 }
