@@ -24,7 +24,12 @@ api methods
     t/f
   secureAccount(account, key)           #set a new key
     key: #
+
   getAddress(account, key)              #
     address: #
   getBalance(account, key)
-    balance
+    balance, address
+  listTransactions(account, key)
+        array Transactions
+makeTransaction(account, key, receiver, amount)
+        txid
