@@ -33,7 +33,7 @@ function testAccount ($account, $key) {
         $found = checkAccount($account);
         $correct = false;
         if ($found) {
-                $correct = checkKey();
+                $correct = checkKey($account, $key);
         }
         Respond(array("account"=>$found, "key"=>$correct));
 }
