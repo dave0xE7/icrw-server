@@ -41,9 +41,17 @@ function createAccount () {
 	}
 }
 function testAccount ($account, $key) {
-	if (file_exists('data/users/'. $account)) {
-		$useradata = $json_decode()
-	}
+        if (file_exists('data/users/'. $account)) {
+                // account found in database
+                $userdata = json_decode(file_get_contents('data/users/'. $account));
+                if ($key == $userdata->key) {
+                        Respond("true"); // correct
+                } else {
+                        Respond("false"); // incorrect
+                }
+        } else {
+                Error ("-15", "not found");
+        }
 }
 function secureAccount ($account, $key) {
     if (file_exists('data/users/'. $account)) {
@@ -56,12 +64,27 @@ function secureAccount ($account, $key) {
         file_put_contents('data/users/'. $account, json_encode($userdata));
         Respond($newkey);
       } else {
-	Error ("-10", "Wrong Key");}
+	Error ("-10", "key incorrect");}
+    } else {
+            Error ("-15", "not found");
     }
 }
+function getBalance ($account, $key) {
+        if (file_exists('data/users/'. $account)) {
+                // account found in database
+                $userdata = json_decode(file_get_contents('data/users/'. $account));
+                if ($key == $userdata->key) {
+                        $balance = $intercrone->getbalance($userdata->address);
+                        Respond (json_encode(array("balance"=>$balance, "address"=>$userdata->address)));
+                } else {
+                        Error ("-10", "key incorrect");
+                }
+        } else {
+                Error ("-15", "not found");
+        }
+}
 /**
-        $balance = $intercrone->getbalance($userid);
-       return (json_encode(array("userid"=>$userid, "token"=>$token, "balance"=>$balance, "address"=>$userdata->address)));
+
 	}
     }
   }
@@ -99,41 +122,36 @@ function Error ($code, $message) {
 
 //if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-	$inputJson = file_get_contents('php://input');
-	$input = json_decode($inputJson);
+$inputJson = file_get_contents('php://input');
+$input = json_decode($inputJson);
 
-	//if (isset ($_POST['method'])) {
+$id = $input->id;
+$method = $input->method;
+$params = $input->params;
 
-	$id = $input->id;
-	$method = $input->method;
-	$params = $input->params;
-	//$method = user_input($_POST['method']);
-	//$q = use_input($_POST['q']);
-
-	if ($method == "createAccount") {
-		//$data=getAccount();
-		//Respond($id, $data);
-    createAccount();
-  } else if ($method=="checkAccount") {
-    checkAccount($params[0]);
-	} else if ($method=="secureAccount") {
-		$accountId=$params[0];
-		$accountKey=$params[1];
-    secureAccount($accountId, $accountKey);
-    //Respond($id, array("key"=>$accountKey));
-	} else if ($method=="ping") {
-		Respond ($id, "pong");
-	} else if ($method=="system.describe") {
-		$procs = array(
-				array("name"=>"ping", "params"=>array()),
-				array("name"=>"createAccount", "params"=>""),
-				array("name"=>"checkAccount", "params"=>array("<account>")),
-				array("name"=>"secureAccount", "params"=>array("<account>", "<key>"))
-			);
-		echo (json_encode(array("id"=>$input->id, "jsonrpc"=>"2.0", "procs"=>$procs)));
-	}
-//	}
-//}
+if ($method == "createAccount") {
+        createAccount();
+} else if ($method=="checkAccount") {
+        checkAccount($params[0]);
+} else if ($method=="testAccount") {
+        testAccount($params[0], $params[1]);
+} else if ($method=="secureAccount") {
+        secureAccount($params[0], $params[1]);
+} else if ($method=="getBalance") {
+        getBalance($params[0], $params[1]);
+} else if ($method=="ping") {
+	Respond ($id, "pong");
+} else if ($method=="system.describe") {
+	$procs = array(
+		array("name"=>"ping", "params"=>array()),
+		array("name"=>"createAccount", "params"=>""),
+		array("name"=>"checkAccount", "params"=>array("<account>")),
+		array("name"=>"testAccount", "params"=>array("<account>", "<key>")),
+		array("name"=>"secureAccount", "params"=>array("<account>", "<key>")),
+		array("name"=>"getBalance", "params"=>array("<account>", "<key>"))
+	);
+	echo (json_encode(array("id"=>$input->id, "jsonrpc"=>"2.0", "procs"=>$procs)));
+}
 
 
 ?>
