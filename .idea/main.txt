@@ -16,13 +16,15 @@ else (account found)
 
 
 api methods
-  createAccount
+  createAccount                         #create a new account for a new user
     account: #, key: #
-  checkAccount(account)
+  checkAccount(account)                 #see if account exists
     t/f
-  secureAccount(account, key)
+  testAccount(account, key)             #see if key is correct
+    t/f
+  secureAccount(account, key)           #set a new key
     key: #
-  getAddress(account, key)
+  getAddress(account, key)              #
     address: #
   getBalance(account, key)
     balance

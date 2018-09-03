@@ -3,20 +3,8 @@ require_once("EasyBitcoin-PHP/easybitcoin.php");
 
 $intercrone = new Bitcoin("InterCronerpc", "1337133713371337", "localhost", "8443");
 
-function use_input($data) {
-  $data = trim($data);
-  $data = stripslashes($data);
-  $data = htmlspecialchars($data);
-  return $data;
-}
+$dataDir = "";
 
-function check_userid() {
-	global $userid;
-	if (isset ($_SESSION['userid'])) {
-		$userid = $_SESSION['userid'];
-		return $userid;
-	} return "";
-}
 
 function checkAccount ($account) {
   if (file_exists('data/users/'. $account)) {
