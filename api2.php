@@ -1,9 +1,8 @@
 <?php
 require_once("EasyBitcoin-PHP/easybitcoin.php");
 
-//intercrone = new Bitcoin("InterCronerpc", "1337133713371337", "localhost", "8443");
+$intercrone = new Bitcoin("InterCronerpc", "1337133713371337", "localhost", "8443");
 
-define ("intercrone", new Bitcoin("InterCronerpc", "1337133713371337", "localhost", "8443"))
 define ("dataDir", "data/users/");
 
 
@@ -30,12 +29,12 @@ function testAccount ($account, $key) {
 }
 
 function createAccount () {
-  // global $intercrone;
+  globel $intercrone
   // Create a new wallet
   $account = hash('sha256', time());
   $newkey = hash('sha256', $account);
   if (!file_exists(dataDir. $account)) {
-    $address = intercrone->getnewaddress($account);
+    $address = $intercrone->getnewaddress($account);
     $balance = 0.0;
     $userdata = json_encode(array("balance"=>$balance, "address"=>$address, "key"=>$newkey));
     file_put_contents(dataDir. $account, $userdata);
@@ -62,11 +61,12 @@ function secureAccount ($account, $key) {
     }
 }
 function getBalance ($account, $key) {
+        global $intercrone;
         if (file_exists(dataDir. $account)) {
                 // account found in database
                 $userdata = json_decode(file_get_contents(dataDir. $account));
                 if ($key == $userdata->key) {
-                        $balance = intercrone->getbalance($userdata->address);
+                        $balance = $intercrone->getbalance($userdata->address);
                         Respond (json_encode(array("balance"=>$balance, "address"=>$userdata->address)));
                 } else {
                         Error ("-10", "key incorrect");
@@ -78,9 +78,9 @@ function getBalance ($account, $key) {
 
 function listTransactions ($account, $key) {
         if (checkAccess($account, $key)) {
-                // global $intercrone;
+                globel $intercrone
                 //$userdata = json_decode(file_get_contents(dataDir. $account));
-                Respond(intercrone->listtransactions($account));
+                Respond($intercrone->listtransactions($account));
         }
 }
 
