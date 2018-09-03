@@ -13,6 +13,20 @@ function checkKey ($account, $key) {
 	$userdata = json_decode(file_get_contents(dataDir. $account));
 	return ($key == $userdata->key);
 }
+function checkAccess ($account, $key) {
+        if (checkAccount($account)) {
+                return checkKey($account, $key);
+        } return false;
+}
+
+function testAccount ($account, $key) {
+        $found = checkAccount($account);
+        $correct = false;
+        if ($found) {
+                $correct = checkKey($account, $key);
+        }
+        Respond(array("account"=>$found, "key"=>$correct));
+}
 
 function createAccount () {
   global $intercrone;
@@ -29,14 +43,7 @@ function createAccount () {
   Error("-15","account exists");
 	}
 }
-function testAccount ($account, $key) {
-        $found = checkAccount($account);
-        $correct = false;
-        if ($found) {
-                $correct = checkKey($account, $key);
-        }
-        Respond(array("account"=>$found, "key"=>$correct));
-}
+
 function secureAccount ($account, $key) {
     if (file_exists(dataDir. $account)) {
       // account found in database
@@ -66,6 +73,14 @@ function getBalance ($account, $key) {
                 }
         } else {
                 Error ("-15", "not found");
+        }
+}
+
+function listTransactions ($account, $key) {
+        if (checkAccess($account, $key)) {
+                global $intercrone;
+                //$userdata = json_decode(file_get_contents(dataDir. $account));
+                Respond($intercrone->listtransactions($account));
         }
 }
 
@@ -100,6 +115,8 @@ if ($method == "createAccount") {
         secureAccount($params[0], $params[1]);
 } else if ($method=="getBalance") {
         getBalance($params[0], $params[1]);
+} else if ($method=="listTransactions") {
+        listTransactions($params[0], $params[1]);
 } else if ($method=="ping") {
 	Respond ($id, "pong");
 } else if ($method=="system.describe") {
@@ -109,7 +126,9 @@ if ($method == "createAccount") {
 		array("name"=>"checkAccount", "params"=>array("<account>")),
 		array("name"=>"testAccount", "params"=>array("<account>", "<key>")),
 		array("name"=>"secureAccount", "params"=>array("<account>", "<key>")),
-		array("name"=>"getBalance", "params"=>array("<account>", "<key>"))
+		array("name"=>"getBalance", "params"=>array("<account>", "<key>")),
+		array("name"=>"listTransactions", "params"=>array("<account>", "<key>")),
+		array("name"=>"makeTransaction", "params"=>array("<account>", "<key>", "<receiver>", "<amount>"))
 	);
 	echo (json_encode(array("id"=>$input->id, "jsonrpc"=>"2.0", "procs"=>$procs)));
 }
