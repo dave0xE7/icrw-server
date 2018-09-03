@@ -20,9 +20,10 @@ function check_userid() {
 
 function checkAccount ($account) {
   if (file_exists('data/users/'. $account)) {
-    return true;
-  }
-  return false;
+    Respond("true");
+  } else {
+	  Respond("false");
+	}
 }
 function createAccount () {
   global $intercrone;
@@ -35,21 +36,27 @@ function createAccount () {
     $userdata = json_encode(array("balance"=>$balance, "address"=>$address, "key"=>$newkey));
     file_put_contents('data/users/'. $account, $userdata);
     Respond(array("account"=>$account, "key"=>$newkey));
-  }
+  } else {
   Error("-15","account exists");
+	}
 }
-
+function testAccount ($account, $key) {
+	if (file_exists('data/users/'. $account)) {
+		$useradata = $json_decode()
+	}
+}
 function secureAccount ($account, $key) {
     if (file_exists('data/users/'. $account)) {
       // account found in database
-  		$userdata = json_decode(file_get_contents('data/users/'. $account));
-  		if ($key == $userdata->key) {
+  	$userdata = json_decode(file_get_contents('data/users/'. $account));
+  	if ($key == $userdata->key) {
         // key was correct
         $newkey = hash('sha256', time());
         $userdata->key = $newkey;
         file_put_contents('data/users/'. $account, json_encode($userdata));
-        return $newkey;
-      }
+        Respond($newkey);
+      } else {
+	Error ("-10", "Wrong Key");}
     }
 }
 /**
@@ -120,7 +127,7 @@ function Error ($code, $message) {
 		$procs = array(
 				array("name"=>"ping", "params"=>array()),
 				array("name"=>"createAccount", "params"=>""),
-				array("name"=>"checkAccount", "params"=>""),
+				array("name"=>"checkAccount", "params"=>array("<account>")),
 				array("name"=>"secureAccount", "params"=>array("<account>", "<key>"))
 			);
 		echo (json_encode(array("id"=>$input->id, "jsonrpc"=>"2.0", "procs"=>$procs)));
