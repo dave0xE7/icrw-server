@@ -18,6 +18,8 @@ else (account found)
 api methods
   createAccount
     account: #, key: #
+  checkAccount(account)
+    t/f
   secureAccount(account, key)
     key: #
   getAddress(account, key)
