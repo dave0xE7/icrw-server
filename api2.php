@@ -3,7 +3,7 @@ require_once("EasyBitcoin-PHP/easybitcoin.php");
 
 $intercrone = new Bitcoin("InterCronerpc", "1337133713371337", "localhost", "8443");
 
-define (dataDir, "data/users/");
+define ("dataDir", "data/users/");
 
 
 function checkAccount ($account) {
