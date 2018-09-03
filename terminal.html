@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>foobar</title>
+		<script src="https://code.jquery.com/jquery-latest.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.21.0/js/jquery.terminal.min.js"></script>
+		<script src="https://cdn.rawgit.com/inexorabletash/polyfill/master/keyboard.js"></script>
+		<link href="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.21.0/css/jquery.terminal.min.css" rel="stylesheet"/>
+	</head>
+	<body>
+		<div id="term"></div>
+		<script type="text/javascript">
+			$(function() {
+				$('body').terminal(function(command, term) {
+					term.pause();
+					$.post('http://195.201.178.220:80/icrw-server/api.php', {q: command}).then(function(response) {
+						term.echo(response).resume();
+					});
+				}, {
+					greetings: 'Simple php example'
+				});
+			});
+    </script>
+	</body>
+</html>
