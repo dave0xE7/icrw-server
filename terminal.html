@@ -10,7 +10,7 @@
 	<body>
 		<div id="term"></div>
 		<script type="text/javascript">
-			$(function() {
+			/**$(function() {
 				$('body').terminal(function(command, term) {
 					term.pause();
 					$.post('http://195.201.178.220:80/icrw-server/api.php', {q: command}).then(function(response) {
@@ -19,7 +19,12 @@
 				}, {
 					greetings: 'Simple php example'
 				});
+			});**/
+			$(function() {
+				$('body').terminal("http://195.201.178.220/icrw-server/api2.php", {
+					greetings: "Intercrone Wallet RPC"
+				});
 			});
-    </script>
+		</script>
 	</body>
 </html>
