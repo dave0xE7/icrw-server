@@ -33,8 +33,8 @@ function getAccount () {
         file_put_contents('data/users/'. $userid, json_encode($userdata));
         $balance = $intercrone->getbalance($userid);
         echo (json_encode(array("userid"=>$userid, "token"=>$token, "balance"=>$balance, "address"=>$userdata->address)));
-        return;
-  		}
+  	return;	
+	}
     }
   }
     // Create a new wallet
@@ -69,7 +69,17 @@ function check_user_token ($userid, $token) {
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
+	//$method = user_input($_POST['method']);
 	$q = use_input($_POST['q']);
+
+	/**if ($method == "getaccount") {
+		$data=getAccount();
+		echo (json_encode(array($_POST['id'], "result"=>$data)));
+	} else if ($method=="ping") {
+		echo ("pong!");
+	} else if ($method="system.describe") {
+		echo (json_encode(array("id"=>$_POST['id'], "jsonrpc"=>"2.0", procs"=>array(array("name"=>"irgendwos", "params"=>"")))));
+	}**/
 
 	if ($q == "login") {
 		$email = use_input($_POST["email"]);
@@ -162,4 +172,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 }
 
+
 ?>
+
