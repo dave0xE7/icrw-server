@@ -78,7 +78,7 @@ function getBalance ($account, $key) {
 
 function listTransactions ($account, $key) {
         if (checkAccess($account, $key)) {
-                global $intercrone
+                global $intercrone;
                 //$userdata = json_decode(file_get_contents(dataDir. $account));
                 Respond($intercrone->listtransactions($account));
         }
