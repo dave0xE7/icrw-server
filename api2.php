@@ -29,7 +29,7 @@ function testAccount ($account, $key) {
 }
 
 function createAccount () {
-  globel $intercrone
+  globel $intercrone;
   // Create a new wallet
   $account = hash('sha256', time());
   $newkey = hash('sha256', $account);
