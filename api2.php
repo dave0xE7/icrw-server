@@ -5,6 +5,9 @@ $intercrone = new Bitcoin("InterCronerpc", "1337133713371337", "localhost", "844
 
 define ("dataDir", "data/users/");
 
+function MyLog ($message) {
+        file_put_contents("calls.log", "[".date("Ymd-H-i-s")."]".$message."\n", FILE_APPEND);
+}
 
 function checkAccount ($account) {
         return file_exists(dataDir. $account);
@@ -35,8 +38,7 @@ function createAccount () {
   $newkey = hash('sha256', $account);
   if (!file_exists(dataDir. $account)) {
     $address = $intercrone->getnewaddress($account);
-    $balance = 0.0;
-    $userdata = json_encode(array("balance"=>$balance, "address"=>$address, "key"=>$newkey));
+    $userdata = json_encode(array("createTime"=>time(),"address"=>$address, "keyTime"=>time(), "key"=>$newkey));
     file_put_contents(dataDir. $account, $userdata);
     Respond(array("account"=>$account, "key"=>$newkey));
   } else {
@@ -52,6 +54,7 @@ function secureAccount ($account, $key) {
         // key was correct
         $newkey = hash('sha256', time());
         $userdata->key = $newkey;
+        $userdata->keyTime = time();
         file_put_contents(dataDir. $account, json_encode($userdata));
         Respond($newkey);
       } else {
@@ -66,8 +69,8 @@ function getBalance ($account, $key) {
                 // account found in database
                 $userdata = json_decode(file_get_contents(dataDir. $account));
                 if ($key == $userdata->key) {
-                        $balance = $intercrone->getbalance($userdata->address);
-                        Respond (json_encode(array("balance"=>$balance, "address"=>$userdata->address)));
+                        $balance = $intercrone->getbalance($account);
+                        Respond (array("balance"=>$balance, "address"=>$userdata->address));
                 } else {
                         Error ("-10", "key incorrect");
                 }
@@ -84,6 +87,16 @@ function listTransactions ($account, $key) {
         }
 }
 
+function makeTransaction ($account, $key, $address, $amount) {
+        global $intercrone;
+        if (checkAccess($account, $key)) {
+                $balance = $intercrone->getbalance($account);
+                if ($balance > 0) {
+                        $transaction = $intercrone->sendfrom($account, $address, $amount);
+                        Respond($transaction);
+                }
+        }
+}
 
 function Respond ($response) {
   global $id;
@@ -101,24 +114,53 @@ function RespondBool ($value) {
 $inputJson = file_get_contents('php://input');
 $input = json_decode($inputJson);
 
-$id = $input->id;
-$method = $input->method;
-$params = $input->params;
+MyLog($inputJson);
+//MyLog($input;
+
+//$id; $method, $params, $account, $key;
+
+if (!empty($input)) {
+        $id = $input->id;
+        $method = $input->method;
+        $params = $input->params;
+        $account = $params[0];
+        $key = $params[1];
+}
+
+if (isset ($_POST['id'])) {
+        $id = $_POST['id'];
+        $method = $_POST['method'];
+        if (isset ($_POST['account'])) {
+                $account = $_POST['account'];
+        }
+        if (isset ($_POST['key'])) {
+                $key = $_POST['key'];
+        }
+        if (isset ($_POST['address'])) {
+                $address = $_POST['address'];
+        }
+        if (isset ($_POST['amount'])) {
+                $amount = $_POST['amount'];
+        }
+        MyLog("method=".$method);
+}
 
 if ($method == "createAccount") {
         createAccount();
 } else if ($method=="checkAccount") {
-        RespondBool(checkAccount($params[0]));
+        RespondBool(checkAccount($account));
 } else if ($method=="testAccount") {
-        testAccount($params[0], $params[1]);
+        testAccount($account, $key);
 } else if ($method=="secureAccount") {
-        secureAccount($params[0], $params[1]);
+        secureAccount($account, $key);
 } else if ($method=="getBalance") {
-        getBalance($params[0], $params[1]);
+        getBalance($account, $key);
 } else if ($method=="listTransactions") {
-        listTransactions($params[0], $params[1]);
+        listTransactions($account, $key);
+} else if ($method=="makeTransaction") {
+        makeTransaction($account, $key, $address, $amount);
 } else if ($method=="ping") {
-	Respond ($id, "pong");
+	Respond ($id. " pong");
 } else if ($method=="system.describe") {
 	$procs = array(
 		array("name"=>"ping", "params"=>array()),
@@ -128,10 +170,11 @@ if ($method == "createAccount") {
 		array("name"=>"secureAccount", "params"=>array("<account>", "<key>")),
 		array("name"=>"getBalance", "params"=>array("<account>", "<key>")),
 		array("name"=>"listTransactions", "params"=>array("<account>", "<key>")),
-		array("name"=>"makeTransaction", "params"=>array("<account>", "<key>", "<receiver>", "<amount>"))
+		array("name"=>"makeTransaction", "params"=>array("<account>", "<key>", "<address>", "<amount>"))
 	);
 	echo (json_encode(array("id"=>$input->id, "jsonrpc"=>"2.0", "procs"=>$procs)));
 }
+
 
 
 ?>

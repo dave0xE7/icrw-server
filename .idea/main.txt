@@ -33,3 +33,7 @@ api methods
         array Transactions
 makeTransaction(account, key, receiver, amount)
         txid
+
+
+# MAYBE ALL IN ONE function
+takes account + key

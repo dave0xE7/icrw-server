@@ -10,7 +10,7 @@ $icreurval = number_format($icrbtcval * $btceurval, 2, '.', ',');
 
 function UpdateFile () {
 	global $btceurval, $icrbtcval, $icreurval;
-	file_put_contents('charts.json', json_encode(array($btceurval, $icrbtcval, $icreurval)));
+	file_put_contents('pricecharts.json', json_encode(array("btceur"=>$btceurval, "icrbtc"=>$icrbtcval, "icreur"=>$icreurval)));
 }
 
 UpdateFile();
