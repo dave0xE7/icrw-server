@@ -37,3 +37,7 @@ makeTransaction(account, key, receiver, amount)
 
 # MAYBE ALL IN ONE function
 takes account + key
+
+
+optional amount for qrcode
+share payment request
