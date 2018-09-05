@@ -3,175 +3,178 @@ require_once("EasyBitcoin-PHP/easybitcoin.php");
 
 $intercrone = new Bitcoin("InterCronerpc", "1337133713371337", "localhost", "8443");
 
-function use_input($data) {
-  $data = trim($data);
-  $data = stripslashes($data);
-  $data = htmlspecialchars($data);
-  return $data;
+define ("dataDir", "data/users/");
+
+function MyLog ($message) {
+        file_put_contents("calls.log", "[".date("Ymd-H-i-s")."]".$message."\n", FILE_APPEND);
 }
 
-function check_userid() {
-	global $userid;
-	if (isset ($_SESSION['userid'])) {
-		$userid = $_SESSION['userid'];
-		return $userid;
-	} return "";
+function checkAccount ($account) {
+        return file_exists(dataDir. $account);
+}
+function checkKey ($account, $key) {
+	$userdata = json_decode(file_get_contents(dataDir. $account));
+	return ($key == $userdata->key);
+}
+function checkAccess ($account, $key) {
+        if (checkAccount($account)) {
+                return checkKey($account, $key);
+        } return false;
 }
 
-function getAccount () {
+function testAccount ($account, $key) {
+        $found = checkAccount($account);
+        $correct = false;
+        if ($found) {
+                $correct = checkKey($account, $key);
+        }
+        Respond(array("account"=>$found, "key"=>$correct));
+}
+
+function createAccount () {
   global $intercrone;
-  $userid = use_input($_POST['userid']);
-	$token = use_input($_POST['token']);
-  if (!empty($userid) && !empty($token)) {
-    if (file_exists('data/users/'. $userid)) {
+  // Create a new wallet
+  $account = hash('sha256', time());
+  $newkey = hash('sha256', $account);
+  if (!file_exists(dataDir. $account)) {
+    $address = $intercrone->getnewaddress($account);
+    $userdata = json_encode(array("createTime"=>time(),"address"=>$address, "keyTime"=>time(), "key"=>$newkey));
+    file_put_contents(dataDir. $account, $userdata);
+    Respond(array("account"=>$account, "key"=>$newkey));
+  } else {
+  Error("-15","account exists");
+	}
+}
+
+function secureAccount ($account, $key) {
+    if (file_exists(dataDir. $account)) {
       // account found in database
-  		$userdata = json_decode(file_get_contents('data/users/'. $userid));
-  		if ($token == $userdata->token) {
+  	$userdata = json_decode(file_get_contents(dataDir. $account));
+  	if ($key == $userdata->key) {
         // key was correct
-        $token = hash('sha256', time());
-        $userdata->token = $token;
-        file_put_contents('data/users/'. $userid, json_encode($userdata));
-        $balance = $intercrone->getbalance($userid);
-        echo (json_encode(array("userid"=>$userid, "token"=>$token, "balance"=>$balance, "address"=>$userdata->address)));
-  	return;	
-	}
+        $newkey = hash('sha256', time());
+        $userdata->key = $newkey;
+        $userdata->keyTime = time();
+        file_put_contents(dataDir. $account, json_encode($userdata));
+        Respond($newkey);
+      } else {
+	Error ("-10", "key incorrect");}
+    } else {
+            Error ("-15", "not found");
     }
-  }
-    // Create a new wallet
-    $userid = hash('sha256', time());
-    $token = hash('sha256', $userid);
-    if (!file_exists('data/users/'. $userid)) {
-      $address = $intercrone->getnewaddress($userid);
-      $balance = 0.0;
-      $userdata = json_encode(array("balance"=>$balance, "address"=>$address, "token"=>$userid));
-      file_put_contents('data/users/'. $userid, $userdata);
-    }
-
-  //echo (json_encode(array("userid"=>$userid, "token"=>$token)));
-  echo (json_encode(array("userid"=>$userid, "token"=>$token, "balance"=>$balance, "address"=>$address)));
+}
+function getBalance ($account, $key) {
+        global $intercrone;
+        if (file_exists(dataDir. $account)) {
+                // account found in database
+                $userdata = json_decode(file_get_contents(dataDir. $account));
+                if ($key == $userdata->key) {
+                        $balance = $intercrone->getbalance($account);
+                        Respond (array("balance"=>$balance, "address"=>$userdata->address));
+                } else {
+                        Error ("-10", "key incorrect");
+                }
+        } else {
+                Error ("-15", "not found");
+        }
 }
 
-function check_login () {
-	$userid = use_input($_POST['userid']);
-	$token = use_input($_POST['token']);
-	return check_user_token($userid, $token);
+function listTransactions ($account, $key) {
+        if (checkAccess($account, $key)) {
+                global $intercrone;
+                //$userdata = json_decode(file_get_contents(dataDir. $account));
+                Respond($intercrone->listtransactions($account));
+        }
 }
 
-function check_user_token ($userid, $token) {
-	if (file_exists('data/users/'. $userid)) {
-		$userdata = json_decode(file_get_contents('data/users/'. $userid));
-		if ($token == $userdata->token) {
-			return true;
-		}
-	}
-	return false;
+function makeTransaction ($account, $key, $address, $amount) {
+        global $intercrone;
+        if (checkAccess($account, $key)) {
+                $balance = $intercrone->getbalance($account);
+                if ($balance > 0) {
+                        $transaction = $intercrone->sendfrom($account, $address, $amount);
+                        Respond($transaction);
+                }
+        }
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-	//$method = user_input($_POST['method']);
-	$q = use_input($_POST['q']);
-
-	/**if ($method == "getaccount") {
-		$data=getAccount();
-		echo (json_encode(array($_POST['id'], "result"=>$data)));
-	} else if ($method=="ping") {
-		echo ("pong!");
-	} else if ($method="system.describe") {
-		echo (json_encode(array("id"=>$_POST['id'], "jsonrpc"=>"2.0", procs"=>array(array("name"=>"irgendwos", "params"=>"")))));
-	}**/
-
-	if ($q == "login") {
-		$email = use_input($_POST["email"]);
-		$password = use_input($_POST["password"]);
-
-		$loginuserid = hash('sha256', $email);
-		if (file_exists('data/users/'. $loginuserid)) {
-			$userdata = json_decode(file_get_contents('data/users/'. $loginuserid));
-
-			// check password
-			if ($password == $userdata->password) {
-				$_SESSION['userid'] = $loginuserid;
-				$userid = $loginuserid;
-
-				// retruns userid
-				//echo ($loginuserid);
-				// must add token
-				$token = hash('sha256', time());
-				$userdata->token = $token;
-				file_put_contents('data/users/'. $userid, json_encode($userdata));
-				echo (json_encode(array("userid"=>$userid, "token"=>$token)));
-			} else {
-				echo ("false");
-			}
-		}
-	} else if ($q == "register") {
-
-		$name1 = use_input($_POST["name1"]);
-		$name2 = use_input($_POST["name2"]);
-		$email = use_input($_POST["email"]);
-		$pass1 = use_input($_POST["pass1"]);
-		$pass2 = use_input($_POST["pass2"]);
-
-		$reguserid = hash('sha256', $email);
-		if (!file_exists('data/users/'. $reguserid)) {
-			$userdata = json_encode(array("name1"=>$name1, "name2"=>$name2, "email"=>$email, "password"=>$pass1, "balance"=>"0", "address"=>"", "token"=>"0"));
-			file_put_contents('data/users/'. $reguserid, $userdata);
-			echo ("true");
-		} else {
-			echo ("false");
-		}
-
-	} else if ($q == "charts") {
-		include_once("coinbe.php");
-		echo (json_encode(array("btceurval"=>$btceurval, "icrbtcval"=>$icrbtcval, "icreurval"=>$icreurval)));
-
-	} else if ($q == "checklogin") {
-		echo (check_login());
-  } else if ($q == "getaccount") {
-    getAccount();
-	} else if ($q == "getnewaddress") {
-		if (!empty(check_userid())) {
-
-		}
-		return "false";
-	} else if ($q == "alldata") {
-		// shoild check userid and token
-		if (check_login()) {
-			if (file_exists('data/users/'. $userid)) {
-				$userdata = json_decode(file_get_contents('data/users/'. $userid));
-
-				$name1 = $userdata->name1;
-				$name2 = $userdata->name2;
-				$email = $userdata->email;
-				$balance = $userdata->balance;
-				$address = $userdata->address;
-				//$balance_eur = $userdata[4]*$icreurval;
-			}
-			$user = array("userid"=>$userid, "name1"=>$name1, "name2"=>$name2, "email"=>$email);
-			$wallet = array ("balance"=>$balance, "address"=>$address); //, $balance_eur
-			$data = array("user"=>$user, "wallet"=>$wallet);
-			echo (json_encode($data));
-		} else {
-			echo "false";
-		}
-	}
-
-	/**
-	 * $userid, $name1, $name2, $email,
-	 *
-	 * $address_icr
-	 *
-	 * $balance_icr, $balance_eur, $balance_btc
-	 *
-	 * echo ($btceurval.','.$icrbtcval.','.$icreurval);
-	 *
-	 * $login_timestamp
-	 *
-	 */
-
+function Respond ($response) {
+  global $id;
+  echo (json_encode(array("id"=>$id, "jsonrpc"=>"2.0", "result"=>$response)));
 }
+function Error ($code, $message) {
+  global $id;
+  echo (json_encode(array("id"=>$id, "jsonrpc"=>"2.0", "error"=>array("code"=>$code, "message"=>$message))));
+}
+function RespondBool ($value) {
+        if ($value) { Respond("true"); }
+        else { Respond("false"); }
+}
+
+$inputJson = file_get_contents('php://input');
+$input = json_decode($inputJson);
+
+MyLog($inputJson);
+//MyLog($input;
+
+//$id; $method, $params, $account, $key;
+
+if (!empty($input)) {
+        $id = $input->id;
+        $method = $input->method;
+        $params = $input->params;
+        $account = $params[0];
+        $key = $params[1];
+}
+
+if (isset ($_POST['id'])) {
+        $id = $_POST['id'];
+        $method = $_POST['method'];
+        if (isset ($_POST['account'])) {
+                $account = $_POST['account'];
+        }
+        if (isset ($_POST['key'])) {
+                $key = $_POST['key'];
+        }
+        if (isset ($_POST['address'])) {
+                $address = $_POST['address'];
+        }
+        if (isset ($_POST['amount'])) {
+                $amount = $_POST['amount'];
+        }
+        MyLog("method=".$method);
+}
+
+if ($method == "createAccount") {
+        createAccount();
+} else if ($method=="checkAccount") {
+        RespondBool(checkAccount($account));
+} else if ($method=="testAccount") {
+        testAccount($account, $key);
+} else if ($method=="secureAccount") {
+        secureAccount($account, $key);
+} else if ($method=="getBalance") {
+        getBalance($account, $key);
+} else if ($method=="listTransactions") {
+        listTransactions($account, $key);
+} else if ($method=="makeTransaction") {
+        makeTransaction($account, $key, $address, $amount);
+} else if ($method=="ping") {
+	Respond ($id. " pong");
+} else if ($method=="system.describe") {
+	$procs = array(
+		array("name"=>"ping", "params"=>array()),
+		array("name"=>"createAccount", "params"=>""),
+		array("name"=>"checkAccount", "params"=>array("<account>")),
+		array("name"=>"testAccount", "params"=>array("<account>", "<key>")),
+		array("name"=>"secureAccount", "params"=>array("<account>", "<key>")),
+		array("name"=>"getBalance", "params"=>array("<account>", "<key>")),
+		array("name"=>"listTransactions", "params"=>array("<account>", "<key>")),
+		array("name"=>"makeTransaction", "params"=>array("<account>", "<key>", "<address>", "<amount>"))
+	);
+	echo (json_encode(array("id"=>$input->id, "jsonrpc"=>"2.0", "procs"=>$procs)));
+}
+
 
 
 ?>
-
