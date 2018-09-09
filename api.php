@@ -1,5 +1,5 @@
 <?php
-require_once("EasyBitcoin-PHP/easybitcoin.php");
+require_once("src/EasyBitcoin-PHP/easybitcoin.php");
 
 $intercrone = new Bitcoin("InterCronerpc", "1337133713371337", "localhost", "8443");
 
@@ -92,9 +92,33 @@ function makeTransaction ($account, $key, $address, $amount) {
         if (checkAccess($account, $key)) {
                 $balance = $intercrone->getbalance($account);
                 if ($balance > 0) {
-                        $transaction = $intercrone->sendfrom($account, $address, $amount);
-                        Respond($transaction);
+                        if ($amount <= $balance) {
+                                $valAdd = $intercrone->validateaddress($address);
+                                //MyLog("valAdd ".$valAdd);
+                                if ($valAdd['isvalid'] == "true") {
+                                        $success = false;
+                                        if ($valAdd['ismine'] == "true") {
+                                                MyLog("move ".$account." ". $valAdd['account']." ". $amount);
+                                                $success = $intercrone->move($account, $valAdd['account'], $amount);
+                                        } else {
+                                                $transaction = $intercrone->sendfrom($account, $address, $amount);
+                                                MyLog("transaction ".implode('|',$transaction));
+                                                if ($transaction != "") {
+                                                        $success = true;
+                                                }
+                                        }
+                                        RespondBool($success);
+                                        return;
+                                } else {
+                                        Error("-20","Invalid ICR Address");
+                                        return;
+                                }
+                        } else {
+                                Error("-22","Insufficient Balance");
+                                return;
+                        }
                 }
+                //Error("-19", "Input Error");
         }
 }
 

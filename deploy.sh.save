@@ -1,0 +1,4 @@
+
+scp * root@pvdm:/var/www/html/icrw-server/ 
+scp src/EasyBitcoin-PHP/easybitcoin.php root@pvdm:/var/www/html/icrw-server/src/
+scp root@pvdm 'cd /var/w	'
